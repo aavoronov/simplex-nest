@@ -79,7 +79,8 @@ export const getWhereClause = (params: WhereClauseParams) => {
 
   if (
     Object.keys(rawQueries).includes('search') &&
-    (searchFields || searchFields.length)
+    (searchFields || searchFields.length) &&
+    !!rawQueries.search
   ) {
     if (typeof searchFields === 'string') {
       whereClause[searchFields] = { [Op.iLike]: `%${rawQueries.search}%` };
