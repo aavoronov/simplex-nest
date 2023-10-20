@@ -15,7 +15,6 @@ import { Op, Sequelize } from 'sequelize';
 import { PhoneVerification } from '../phone-verifications/entities/phone-verification.entity';
 import { Product } from '../products/entities/product.entity';
 import { Review } from '../reviews/entities/review.entity';
-import { TelegramCredential } from '../telegram-credentials/entities/telegram-credential.entity';
 import { Purchase } from '../purchases/entities/purchase.entity';
 
 @Injectable()
@@ -49,22 +48,6 @@ export class UsersService {
           password: randomPasswordCrypt,
         });
 
-        if (!!newUser) {
-          while (1) {
-            const token = Math.random().toString(36).slice(-8);
-            const tokenCrypt = bcrypt.hashSync(token, salt).slice(-15);
-            const existingCred = await TelegramCredential.findOne({
-              where: { token: tokenCrypt },
-            });
-            if (!existingCred) {
-              await TelegramCredential.create({
-                userId: newUser.id,
-                token: tokenCrypt,
-              });
-              break;
-            }
-          }
-        }
         return {
           login: login,
           password: randomPassword,

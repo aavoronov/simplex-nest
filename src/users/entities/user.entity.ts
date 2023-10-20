@@ -1,7 +1,6 @@
 import { Product } from '@/src/products/entities/product.entity';
 import { Purchase } from '@/src/purchases/entities/purchase.entity';
 import { Review } from '@/src/reviews/entities/review.entity';
-import { TelegramCredential } from '@/src/telegram-credentials/entities/telegram-credential.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   Column,
@@ -77,7 +76,4 @@ export class User extends Model<User> {
 
   @HasMany(() => Review)
   reviews: Review;
-
-  @HasOne(() => TelegramCredential)
-  TelegramCredential: TelegramCredential;
 }

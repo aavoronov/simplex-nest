@@ -10,8 +10,6 @@ import { PhoneVerification } from '@/src/phone-verifications/entities/phone-veri
 import { GlobalCategory } from '@/src/global-categories/entities/global-category.entity';
 import { Purchase } from '@/src/purchases/entities/purchase.entity';
 import { Review } from '@/src/reviews/entities/review.entity';
-import { TelegramCredential } from '@/src/telegram-credentials/entities/telegram-credential.entity';
-import { UserSessionStorage } from '@/src/user-session-storage/entities/user-session-storage.entity';
 import { ChatRoom } from '@/src/chat-rooms/entities/chat-room.entity';
 import { Message } from '@/src/chat/entities/message.entity';
 import { RoomAccess } from '@/src/room-accesses/entities/room-access.entity';
@@ -29,9 +27,6 @@ const entities = [
   ChatRoom,
   RoomAccess,
   Message,
-
-  TelegramCredential,
-  UserSessionStorage,
 ];
 export const databaseProviders = [
   {
