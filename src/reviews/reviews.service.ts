@@ -1,12 +1,13 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { CreateReviewDto } from './dto/create-review.dto';
-import { UpdateReviewDto } from './dto/update-review.dto';
 import { Review, Rating } from './entities/review.entity';
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 import { Product } from '../products/entities/product.entity';
 import { Category } from '../categories/entities/category.entity';
 import { App } from '../apps/entities/app.entity';
 import { getWhereClause } from '../utils/functions';
+import { User } from '../users/entities/user.entity';
+import { Sequelize } from 'sequelize';
 
 @Injectable()
 export class ReviewsService {
@@ -30,18 +31,49 @@ export class ReviewsService {
     return { status: StatusCodes.OK, text: ReasonPhrases.OK };
   }
 
-  async getReviewsToMyProducts(
+  async getAllReviews(queries: Record<string, string>) {
+    const { _limit, _offset } = getWhereClause({ queries });
+    const res = await Review.findAll({
+      attributes: ['text', 'rating', 'createdAt'],
+      include: [
+        {
+          model: Product,
+          attributes: ['id', 'name', 'pics'],
+        },
+        { model: User, attributes: ['name', 'profilePic'] },
+      ],
+      limit: _limit,
+      offset: _offset,
+    });
+    return res;
+  }
+
+  async getReviewStats() {
+    const stats = await Review.findOne({
+      attributes: [
+        [Sequelize.fn('AVG', Sequelize.col('rating')), 'average'],
+        [Sequelize.fn('COUNT', Sequelize.col('rating')), 'count'],
+      ],
+      raw: true,
+    });
+
+    return stats;
+  }
+
+  async getReviewsToUsersProducts(
     userId: number,
     queries: Record<string, string>,
   ) {
     const { _limit, _offset } = getWhereClause({ queries });
     const res = await Review.findAll({
+      attributes: ['text', 'rating', 'createdAt'],
       include: [
         {
           model: Product,
+          attributes: ['id', 'name', 'pics'],
           where: { userId: userId },
-          include: [{ model: Category, include: [{ model: App }] }],
         },
+        { model: User, attributes: ['name', 'profilePic'] },
       ],
       limit: _limit,
       offset: _offset,
@@ -51,10 +83,6 @@ export class ReviewsService {
 
   findOne(id: number) {
     return `This action returns a #${id} review`;
-  }
-
-  update(id: number, updateReviewDto: UpdateReviewDto) {
-    return `This action updates a #${id} review`;
   }
 
   remove(id: number) {

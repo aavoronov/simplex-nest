@@ -6,4 +6,7 @@ export class CreateUserDto {
 
   @ApiProperty({ required: true })
   readonly password: string;
+
+  @ApiProperty({ required: false })
+  readonly invite: string;
 }

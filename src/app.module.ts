@@ -18,14 +18,21 @@ import { UsersModule } from './users/users.module';
 import { AuthMiddleware } from './utils/middleware/auth.middleware';
 import { ReviewsModule } from './reviews/reviews.module';
 import { GlobalCategoriesModule } from './global-categories/global-categories.module';
-
-import { session } from 'telegraf';
 import { ChatModule } from './chat/chat.module';
 import { ChatRoomsModule } from './chat-rooms/chat-rooms.module';
+
+import { AdminModule } from '@adminjs/nestjs';
+import AdminJS from 'adminjs';
+import { Database, Resource } from '@adminjs/sequelize';
+import { resources } from './core/entities';
+import { authenticate } from './core/authenticate';
+import { TasksModule } from './tasks/tasks.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 const modules = [
   DatabaseModule,
   MailerModule,
+  TasksModule,
 
   UsersModule,
   CategoriesModule,
@@ -39,10 +46,30 @@ const modules = [
   ChatRoomsModule,
 ];
 
+AdminJS.registerAdapter({ Database, Resource });
 @Module({
   imports: [
     ConfigModule.forRoot(),
-
+    ScheduleModule.forRoot(),
+    AdminModule.createAdminAsync({
+      useFactory: () => ({
+        adminJsOptions: {
+          rootPath: '/admin',
+          resources: resources,
+          // componentLoader,
+        },
+        auth: {
+          authenticate,
+          cookieName: 'adminjs',
+          cookiePassword: 'secretwhatwouldthatbe',
+        },
+        sessionOptions: {
+          resave: true,
+          saveUninitialized: true,
+          secret: 'secretwhatever',
+        },
+      }),
+    }),
     // TelegrafModule.forRootAsync({
     //   imports: [ConfigModule],
     //   useFactory: (configService: ConfigService) => ({
@@ -74,14 +101,15 @@ export class AppModule {
       '/chat/more',
       // '/products/:id',
       '/users/reauth',
+      { path: '/users/', method: RequestMethod.PATCH },
 
-      '/users/edit',
-      '/users/send-verification',
-      '/users/subscribe',
-      '/users/payment-info',
-      '/users/subscribe',
-      '/users/unsubscribe',
-      { path: '/users/', method: RequestMethod.DELETE },
+      // '/users/edit',
+      // '/users/send-verification',
+      // '/users/subscribe',
+      // '/users/payment-info',
+      // '/users/subscribe',
+      // '/users/unsubscribe',
+      // { path: '/users/', method: RequestMethod.DELETE },
       '/generic-data/',
     );
   }

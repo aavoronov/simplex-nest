@@ -1,3 +1,5 @@
+import { unlink, writeFile } from 'fs';
+import { nanoid } from 'nanoid/non-secure';
 import { Op } from 'sequelize';
 
 const reg = /.+@.+\.[A-Za-z]+$/;
@@ -68,6 +70,7 @@ export const getWhereClause = (params: WhereClauseParams) => {
   let order;
 
   if (Object.keys(rawQueries).includes('page')) {
+    console.log('includes page');
     page = +rawQueries.page;
     delete rawQueries.page;
   }
@@ -128,10 +131,89 @@ export const getWhereClause = (params: WhereClauseParams) => {
     return (whereClause[entry[0]] = entry[1]);
   });
 
+  console.log(page, limit);
   let offset = 0;
   if (page && limit) {
     offset = page * limit - limit;
   }
+  console.log(offset);
 
   return { whereClause, _limit: limit, _offset: offset };
 };
+
+export async function uploadFiles(
+  files: Array<Express.Multer.File> | Express.Multer.File,
+  dir: string,
+): Promise<string[]> {
+  try {
+    const filenames = [];
+
+    const handleOneFile = (file: Express.Multer.File) => {
+      let dbFileName = null;
+      // console.log(item.mimetype);
+
+      const fileName = nanoid();
+      dbFileName =
+        fileName + file.originalname.slice(file.originalname.lastIndexOf('.'));
+
+      filenames.push(dbFileName);
+
+      if (file.mimetype === 'application/octet-stream') {
+        const b64string = file.buffer.toString();
+        // var base64Data = req.rawBody.replace(/^data:image\/png;base64,/, "");
+        const base64Image = b64string.split(';base64,').pop();
+        const buf = Buffer.from(b64string);
+        // const buf = Buffer.from(item.buffer, 'base64');
+        // console.log(buf);
+        // // console.log(item.buffer.toString());
+        writeFile(
+          `./uploads${!!dir ? dir + '/' : ''}${dbFileName}`,
+          base64Image,
+          { encoding: 'base64' },
+          (err) => {
+            !!err && console.log(err);
+          },
+        );
+      } else {
+        const buffer = file.buffer;
+        // const myBuffer = Buffer.from(item);
+        writeFile(`./uploads${dir}/${dbFileName}`, buffer, (err) => {
+          !!err && console.log(err);
+        });
+      }
+    };
+
+    if (Array.isArray(files)) {
+      files.forEach((item: Express.Multer.File) => handleOneFile(item));
+    } else {
+      handleOneFile(files);
+    }
+    return filenames;
+  } catch (e) {
+    console.log(e);
+    throw new Error(e);
+  }
+}
+
+export async function deleteFile(filename: string, dir?: string) {
+  // const parts = `${params['slug'] + params[0]}`.split('/');
+  // const dir = parts.slice(0, -1).join('/');
+  // const slug = parts[parts.length - 1];
+
+  try {
+    const path = `${dir ? dir : ''}/${filename}`;
+
+    // console.log('parts', parts);
+    console.log('dir', path);
+    // console.log('slug', slug);
+
+    await unlink('./uploads/' + path, (err) => {
+      if (err) throw err;
+      console.log('./uploads/' + path + ' was deleted');
+    });
+  } catch (e) {
+    console.log(e);
+  }
+  // return res.sendFile(slug, { root: `./uploads/` + dir + '/' });
+  return { status: 204, text: 'success' };
+}

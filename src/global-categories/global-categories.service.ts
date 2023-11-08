@@ -39,27 +39,14 @@ export class GlobalCategoriesService {
           where: { status: 'active' },
           attributes: [],
         },
-        { model: App, attributes: ['id', 'name'] },
+        { model: App, attributes: ['id', 'name', 'miniPic'] },
+        { model: GlobalCategory, attributes: ['name'] },
       ],
       subQuery: false,
       limit: 15,
-      group: ['Category.id', 'app.id'],
+      group: ['Category.id', 'app.id', 'globalCategory.id'],
       order: [['productCount', 'DESC']],
     });
-
-    // const products = await Product.findAll({
-    //   attributes: ['id', 'name', 'description', 'price'],
-    //   where: { status: 'active' },
-    //   include: [
-    //     {
-    //       model: Category,
-    //       where: { globalCategoryId: id },
-    //       attributes: [],
-    //     },
-    //   ],
-    //   limit: 15,
-    //   order: [['id', 'DESC']],
-    // });
 
     const products = await this.productsService.findAll(
       {},
@@ -67,52 +54,6 @@ export class GlobalCategoriesService {
         globalCategoryId: id,
       },
     );
-
-    const avgLiteral =
-      Sequelize.literal(`(SELECT AVG("products->reviews"."rating") AS "average"
-    FROM "Users" AS "User" 
-    INNER JOIN "Products" AS "products" ON "User"."id" = "products"."userId" AND "products"."status" IN ('active', 'sold') 
-    INNER JOIN "Reviews" AS "products->reviews" ON "products"."id" = "products->reviews"."productId" 
-    WHERE "User"."id" = "Product"."userId"
-    GROUP BY "User"."id")`);
-
-    const countLiteral =
-      Sequelize.literal(`(SELECT COUNT("products->reviews"."rating") AS "count"
-    FROM "Users" AS "User" 
-    INNER JOIN "Products" AS "products" ON "User"."id" = "products"."userId" AND "products"."status" IN ('active', 'sold') 
-    INNER JOIN "Reviews" AS "products->reviews" ON "products"."id" = "products->reviews"."productId" 
-    WHERE "User"."id" = "Product"."userId"
-    GROUP BY "User"."id")`);
-
-    const { _offset, _limit, whereClause } = getWhereClause({
-      queries: {},
-      initial: { status: 'active' },
-      limit: 15,
-    });
-    const products1 = await Product.findAll({
-      where: whereClause,
-      limit: _limit,
-      offset: _offset,
-      include: [
-        {
-          model: Category,
-          attributes: ['name'],
-          include: [{ model: App, attributes: ['id', 'name'] }],
-        },
-        {
-          model: User,
-          as: 'user',
-          attributes: [],
-        },
-      ],
-      attributes: [
-        'id',
-        'name',
-        'price',
-        [avgLiteral, 'average'],
-        [countLiteral, 'count'],
-      ],
-    });
 
     return { apps, products };
   }

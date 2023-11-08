@@ -41,22 +41,4 @@ export class PurchasesController {
   ) {
     return this.purchasesService.changePurchaseStatus(+id, body);
   }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.purchasesService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updatePurchaseDto: UpdatePurchaseDto,
-  ) {
-    return this.purchasesService.update(+id, updatePurchaseDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.purchasesService.remove(+id);
-  }
 }

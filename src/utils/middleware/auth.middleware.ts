@@ -67,6 +67,7 @@ export class AuthMiddleware implements NestMiddleware {
         });
       }
 
+      console.log('mw');
       req.body = {
         ...req.body,
         access: true,

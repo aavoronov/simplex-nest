@@ -19,7 +19,7 @@ type RoleType = (typeof roles)[number];
 export class User extends Model<User> {
   @Column({
     type: DataType.STRING,
-    allowNull: true,
+    allowNull: false,
   })
   @ApiProperty()
   name: string;
@@ -67,6 +67,18 @@ export class User extends Model<User> {
   })
   @ApiProperty()
   profilePic: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
+  inviteToken: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  invitedBy: string;
 
   @HasMany(() => Purchase)
   purchases: Purchase;

@@ -25,11 +25,12 @@ export class AppsService {
     const initial: { isGame?: boolean } = {};
     if (!!type) initial.isGame = type === 'apps' ? false : true;
 
+    console.log({ search, page: !!page ? page.toString() : '1' });
     console.log(initial);
-    const { whereClause } = getWhereClause({
-      queries: { search, page: page.toString() },
+    const { whereClause, _offset, _limit } = getWhereClause({
+      queries: { search, page: !!page ? page.toString() : '1' },
       initial: initial,
-      searchFields: ['name', 'miniPic'],
+      searchFields: ['name'],
     });
 
     console.log(whereClause);
@@ -39,8 +40,8 @@ export class AppsService {
 
     const { rows, count } = await App.findAndCountAll({
       where: whereClause,
-      offset,
-      limit,
+      offset: _offset,
+      limit: _limit,
     });
     return { rows, count };
   }

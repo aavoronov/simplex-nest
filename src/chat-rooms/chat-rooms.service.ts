@@ -40,30 +40,30 @@ export class ChatRoomsService {
 
   async getMyRooms(userId: number) {
     try {
-      const chats1 = await ChatRoom.findAll({
-        attributes: ['id'],
+      const chats = await RoomAccess.findAll({
+        where: { userId: userId },
         include: [
           {
-            model: RoomAccess,
+            model: ChatRoom,
             attributes: ['id'],
             include: [
               {
-                model: User,
-                where: {
-                  id: { [Op.ne]: userId },
-                },
-                attributes: ['id', 'name', 'login', 'profilePic'],
+                model: RoomAccess,
+                attributes: ['id'],
+                include: [
+                  {
+                    model: User,
+                    where: { id: { [Op.ne]: userId } },
+                    attributes: ['id', 'name', 'profilePic'],
+                  },
+                ],
               },
             ],
           },
         ],
-      });
-      const chats = await RoomAccess.findAll({
-        where: { userId: userId },
-        include: [{ model: ChatRoom, attributes: ['id'] }, { model: User }],
         attributes: ['id'],
       });
-      return chats1;
+      return chats;
     } catch (e) {
       throw new HttpException(e.message, e.status, {
         cause: new Error('Some Error'),

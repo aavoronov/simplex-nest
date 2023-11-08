@@ -9,12 +9,44 @@ import { RoomAccess } from '../room-accesses/entities/room-access.entity';
 import { Category } from '../categories/entities/category.entity';
 import { App } from '../apps/entities/app.entity';
 import { getWhereClause } from '../utils/functions';
+import { User } from '../users/entities/user.entity';
+import { Review } from '../reviews/entities/review.entity';
 
 @Injectable()
 export class PurchasesService {
-  private async deleteRoom(id: number) {
-    const room = await ChatRoom.destroy({ where: { id }, cascade: true });
-    return room;
+  private async firstPurchase(userId: number) {
+    const user = await User.findOne({ where: { id: userId } });
+    console.log(user.invitedBy);
+    if (!user.invitedBy) return;
+
+    const invitedBy = await User.findOne({
+      where: { inviteToken: user.invitedBy },
+    });
+    await user.update({ invitedBy: null });
+    console.log('first purchase, invited by ' + invitedBy.login);
+  }
+
+  private async createChatIfNoneExist(userIds: [number, number]) {
+    const ids = userIds.sort((a, b) => a - b);
+    const chatName = ids[0] + '-' + ids[1];
+
+    const existingChat = await ChatRoom.findOne({ where: { name: chatName } });
+
+    if (!existingChat) {
+      const chat = await ChatRoom.create({ name: chatName });
+      await Promise.all(
+        ids.map((item) => RoomAccess.create({ roomId: chat.id, userId: item })),
+      );
+    }
+  }
+
+  private async deleteChatOnPurchaseCompletion(userIds: [number, number]) {
+    const ids = userIds.sort((a, b) => a - b);
+    const chatName = ids[0] + '-' + ids[1];
+
+    const room = await ChatRoom.findOne({ where: { name: chatName } });
+    await RoomAccess.destroy({ where: { roomId: room.id } });
+    await room.destroy();
   }
 
   async createPurchase(body: CreatePurchaseDto) {
@@ -31,20 +63,12 @@ export class PurchasesService {
 
     const purchase = await Purchase.create({
       productId: +productId,
+      sum: product.price,
       userId: userId,
     });
 
-    const ids = [userId, product.userId].sort((a, b) => a - b);
-    const chatName = ids[0] + '-' + ids[1];
-
-    const existingChat = await ChatRoom.findOne({ where: { name: chatName } });
-
-    if (!existingChat) {
-      const chat = await ChatRoom.create({ name: chatName });
-      await Promise.all(
-        ids.map((item) => RoomAccess.create({ roomId: chat.id, userId: item })),
-      );
-    }
+    await this.createChatIfNoneExist([userId, product.userId]);
+    await this.firstPurchase(userId);
 
     return purchase;
   }
@@ -61,6 +85,12 @@ export class PurchasesService {
               model: Category,
               attributes: ['name'],
               include: [{ model: App, attributes: ['name', 'miniPic'] }],
+            },
+            {
+              model: Review,
+              where: { userId: body.userId },
+              required: false,
+              attributes: ['id'],
             },
           ],
         },
@@ -108,22 +138,36 @@ export class PurchasesService {
     },
   ) {
     try {
-      const [count] = await Purchase.update(
-        { status: body.status },
-        {
-          where: { id: id, userId: body.userId },
-        },
-      );
+      console.log(id, body.userId);
+      // const [count] = await Purchase.update(
+      //   { status: body.status },
+      //   {
+      //     where: { id: id, userId: body.userId },
+      //   },
+      // );
 
-      if (!count) {
-        throw new HttpException(
-          'Ресурс не был обновлен',
-          StatusCodes.UNAUTHORIZED,
+      const purchase = await Purchase.findOne({
+        attributes: ['id', 'userId'],
+        where: { id: id, userId: body.userId },
+        include: [
           {
-            cause: new Error('Some Error'),
+            model: Product,
+            attributes: ['id'],
+            include: [{ model: User, attributes: ['id'] }],
           },
-        );
-      }
+        ],
+      });
+
+      if (purchase.status === 'completed')
+        return { status: StatusCodes.FORBIDDEN, text: ReasonPhrases.FORBIDDEN };
+
+      // if (body.status === 'completed') {
+      //   await this.deleteChatOnPurchaseCompletion([
+      //     purchase.userId,
+      //     purchase.product.user.id,
+      //   ]);
+      // }
+      await purchase.update({ status: body.status });
 
       return { status: StatusCodes.OK, text: ReasonPhrases.OK };
     } catch (e) {
@@ -131,17 +175,5 @@ export class PurchasesService {
         cause: new Error('Some Error'),
       });
     }
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} purchase`;
-  }
-
-  update(id: number, updatePurchaseDto: UpdatePurchaseDto) {
-    return `This action updates a #${id} purchase`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} purchase`;
   }
 }

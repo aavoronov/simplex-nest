@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
-import { UpdateReviewDto } from './dto/update-review.dto';
 
 @Controller('reviews')
 export class ReviewsController {
@@ -21,22 +20,27 @@ export class ReviewsController {
     return this.reviewsService.createReview(createReviewDto);
   }
 
+  @Get('')
+  getAllReviews(@Query() queries: Record<string, string>) {
+    return this.reviewsService.getAllReviews(queries);
+  }
+
+  @Get('stats')
+  getReviewStats() {
+    return this.reviewsService.getReviewStats();
+  }
+
   @Get(':id')
-  getReviewsToMyProducts(
+  getReviewsToUsersProducts(
     @Param('id') id: number,
     @Query() queries: Record<string, string>,
   ) {
-    return this.reviewsService.getReviewsToMyProducts(id, queries);
+    return this.reviewsService.getReviewsToUsersProducts(id, queries);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.reviewsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateReviewDto: UpdateReviewDto) {
-    return this.reviewsService.update(+id, updateReviewDto);
   }
 
   @Delete(':id')

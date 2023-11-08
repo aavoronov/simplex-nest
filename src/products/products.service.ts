@@ -10,21 +10,90 @@ import { App } from '../apps/entities/app.entity';
 import { Review } from '../reviews/entities/review.entity';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
+import { nanoid } from 'nanoid/non-secure';
+import { writeFile } from 'fs';
 
 @Injectable()
 export class ProductsService {
   constructor(private readonly usersService: UsersService) {}
 
-  async create(body: any) {
+  private async uploadFiles(
+    files: Array<Express.Multer.File>,
+  ): Promise<string[]> {
+    try {
+      const filenames = [];
+
+      files.forEach((item: Express.Multer.File) => {
+        let dbFileName = null;
+        // console.log(item.mimetype);
+
+        const fileName = nanoid();
+        dbFileName =
+          fileName +
+          item.originalname.slice(item.originalname.lastIndexOf('.'));
+
+        filenames.push(dbFileName);
+
+        if (item.mimetype === 'application/octet-stream') {
+          const b64string = item.buffer.toString();
+          // var base64Data = req.rawBody.replace(/^data:image\/png;base64,/, "");
+          const base64Image = b64string.split(';base64,').pop();
+          const buf = Buffer.from(b64string);
+          // const buf = Buffer.from(item.buffer, 'base64');
+          // console.log(buf);
+          // // console.log(item.buffer.toString());
+          writeFile(
+            `./uploads/products/${dbFileName}`,
+            base64Image,
+            { encoding: 'base64' },
+            (err) => {
+              !!err && console.log(err);
+            },
+          );
+        } else {
+          const buffer = item.buffer;
+          // const myBuffer = Buffer.from(item);
+          writeFile(`./uploads/products/${dbFileName}`, buffer, (err) => {
+            !!err && console.log(err);
+          });
+        }
+      });
+      return filenames;
+    } catch (e) {
+      // console.log(e);
+    }
+  }
+
+  async create(body: any, token: string, files: Array<Express.Multer.File>) {
     console.log(body);
     const { name, description, price, properties, categoryId } = body;
+
+    const user = await this.usersService.getUserByToken(token);
+
+    const dbFilenames = await this.uploadFiles(files);
+    const images = dbFilenames.length ? dbFilenames : null;
+
+    const re = new RegExp(/^[0-9\b]+$/);
+    if (!re.test(price)) {
+      throw new HttpException(
+        'Указанная цена имеет неверный формат',
+        StatusCodes.BAD_REQUEST,
+        {
+          cause: new Error('Some Error'),
+        },
+      );
+    }
+
     const product = await Product.create({
       name,
       description,
       price,
-      properties: properties,
+      properties: JSON.parse(properties),
       categoryId,
+      userId: user.id,
+      pics: images,
     });
+
     return product;
   }
 

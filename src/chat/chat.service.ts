@@ -74,7 +74,7 @@ export class ChatService {
       include: [
         {
           model: User,
-          attributes: ['id', 'role'],
+          attributes: ['id', 'name'],
         },
       ],
       where: { roomId: room },

@@ -1,20 +1,24 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  Req,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseInterceptors,
+  UploadedFile,
+  Headers,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
 import { SendOneClickCredentialsDto } from './dto/send-one-click-creds.dto';
+import { UsersService } from './users.service';
 // import { UpdateUserDto } from './dto/update-user.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
-import { SignInDto } from './dto/sign-in.dto';
-import { SignInByPhoneDto } from './dto/sign-in-by-phone.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { SignInByPhoneDto } from './dto/sign-in-by-phone.dto';
+import { SignInDto } from './dto/sign-in.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -22,8 +26,8 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post('one-click')
-  oneClickSignUp() {
-    return this.usersService.oneClickSignUp();
+  oneClickSignUp(@Body() body: { invite?: string }) {
+    return this.usersService.oneClickSignUp(body.invite);
   }
 
   @Post('send-one-click')
@@ -37,8 +41,8 @@ export class UsersController {
   }
 
   @Post('phone')
-  signUpByPhone(@Body() body: { phone: string }) {
-    return this.usersService.signUpByPhone(body.phone);
+  signUpByPhone(@Body() body: { phone: string; invite?: string }) {
+    return this.usersService.signUpByPhone(body);
   }
 
   @Post('sign-in')
@@ -51,10 +55,10 @@ export class UsersController {
     return this.usersService.reauthorize(body.userId);
   }
 
-  @Post('phone/verification')
-  createPhoneVerification(@Body() body: { phone: string }) {
-    return this.usersService.createPhoneVerification(body);
-  }
+  // @Post('phone/verification')
+  // createPhoneVerification(@Body() body: { phone: string; invite: string }) {
+  //   return this.usersService.createPhoneVerification(body);
+  // }
 
   @Post('phone/sign-in')
   signInByPhone(@Body() body: SignInByPhoneDto) {
@@ -66,10 +70,15 @@ export class UsersController {
     return this.usersService.getAProfile(+id);
   }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-  //   return this.usersService.update(+id, updateUserDto);
-  // }
+  @Patch()
+  @UseInterceptors(FileInterceptor('profilePic'))
+  editUser(
+    @Headers('Authorization') token: string,
+    @Body() body: UpdateUserDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.usersService.editUser(body, token, file);
+  }
 
   @Delete(':id')
   remove(@Param('id') id: string) {

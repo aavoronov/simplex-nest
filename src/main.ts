@@ -7,9 +7,12 @@ import { AllExceptionsFilter } from './http-exception.filter';
 import { ConfigService } from '@nestjs/config';
 import { SocketIOAdapter } from './socket-io-adapter';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app: NestExpressApplication = await NestFactory.create(AppModule, {
+    cors: true,
+  });
   const configService = app.get(ConfigService);
   // const bot = app.get(getBotToken());
   // app.use(bot.webhookCallback('/secret-path'));
