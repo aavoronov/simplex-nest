@@ -8,5 +8,5 @@ export class CreateUserDto {
   readonly password: string;
 
   @ApiProperty({ required: false })
-  readonly invite: string;
+  readonly invite?: string | undefined;
 }

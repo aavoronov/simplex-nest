@@ -113,6 +113,7 @@ export class UsersService {
   async signUpByEmail(user: CreateUserDto) {
     try {
       const { email, password, invite } = user;
+      console.log(invite);
 
       const salt = bcrypt.genSaltSync();
       const passwordHash = await bcrypt.hash(password, salt);
@@ -121,7 +122,7 @@ export class UsersService {
         login: email,
         password: passwordHash,
         inviteToken: nanoid(20),
-        invitedBy: invite,
+        invitedBy: invite || null,
         name: email,
       });
 
@@ -196,7 +197,6 @@ export class UsersService {
 
       const user = await User.findOne({
         where: { login },
-        attributes: { exclude: ['password'] },
       });
 
       let passwordMatches = false;

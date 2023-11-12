@@ -28,6 +28,13 @@ export class ReviewsService {
       rating: rating,
       text,
     });
+
+    const product = await Product.findOne({
+      where: { id: +productId },
+    });
+
+    await User.update({ hasReviews: true }, { where: { id: product.userId } });
+
     return { status: StatusCodes.OK, text: ReasonPhrases.OK };
   }
 

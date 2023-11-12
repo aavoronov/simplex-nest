@@ -11,7 +11,7 @@ export class AppController {
   }
 
   @Get('uploads/:slug*')
-  seeUploadedFile(@Param() params: string[], @Res() res: any) {
+  getFile(@Param() params: string[], @Res() res: any) {
     return this.appService.getFile(params, res);
   }
 }

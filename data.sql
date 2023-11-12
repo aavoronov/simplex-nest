@@ -1,4 +1,5 @@
-INSERT INTO "Users" ("login", "password", "profilePic", "createdAt", "updatedAt") VALUES ('login', '$2b$10$7SrA7658y5lKO./2ukUOOOxbzXKQgZGxDG.jc4B81N8.4D5M7a6Ui', 'profilePic.jpeg', current_timestamp, current_timestamp);
+INSERT INTO "Users" ("login", "name", "inviteToken", "password", "profilePic", "createdAt", "updatedAt") VALUES ('login', 'name', '12345', 'password', 'profilePic.jpeg', current_timestamp, current_timestamp);
+
 
 
 INSERT INTO "GlobalCategories" ("name", "createdAt", "updatedAt") values ('Донат', current_timestamp, current_timestamp);

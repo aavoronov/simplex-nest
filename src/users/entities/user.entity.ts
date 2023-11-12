@@ -63,6 +63,14 @@ export class User extends Model<User> {
   isDeleted: boolean;
 
   @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+  })
+  @ApiProperty()
+  hasReviews: boolean;
+
+  @Column({
     type: DataType.STRING,
   })
   @ApiProperty()

@@ -124,11 +124,19 @@ export class ProductsService {
   }
 
   async findAll(queries: Record<string, any>, innerWhereClause?: any) {
-    const { _offset, _limit, whereClause } = getWhereClause({
+    // const { extracted, queries: rest } = extractInnerWhereClause({
+    //   queries,
+    //   fields: ['globalCategoryId'],
+    // });
+    // console.log({ extracted, rest });
+    const { _offset, _limit, whereClause, extracted } = getWhereClause({
       queries,
       initial: { status: 'active' },
       limit: 15,
+      extract: ['globalCategoryId', 'discount', 'withReviews'],
     });
+
+    console.log({ _offset, _limit, whereClause, extracted });
 
     const avgLiteral =
       Sequelize.literal(`(SELECT AVG("products->reviews"."rating") AS "average"
@@ -154,7 +162,7 @@ export class ProductsService {
         {
           model: Category,
           where: innerWhereClause,
-          attributes: ['id', 'name'],
+          attributes: ['id', 'name', 'globalCategoryId'],
           include: [{ model: App, attributes: ['id', 'name', 'miniPic'] }],
         },
         {
@@ -177,11 +185,19 @@ export class ProductsService {
   }
 
   async getOneAppsProducts(queries: Record<string, any>, appId: number) {
-    const { _offset, _limit, whereClause } = getWhereClause({
+    // const { _offset, _limit, whereClause } = getWhereClause({
+    //   queries,
+    //   initial: { status: 'active' },
+    //   limit: 15,
+    // });
+
+    const { _offset, _limit, whereClause, extracted } = getWhereClause({
       queries,
       initial: { status: 'active' },
       limit: 15,
+      extract: ['globalCategoryId', 'discount', 'withReviews'],
     });
+    console.log({ _offset, _limit, whereClause, extracted });
 
     const avgLiteral =
       Sequelize.literal(`(SELECT AVG("products->reviews"."rating") AS "average"
@@ -214,6 +230,7 @@ export class ProductsService {
           model: User,
           as: 'user',
           attributes: [],
+          where: extracted.withReviews ? { hasReviews: true } : undefined,
         },
       ],
       attributes: [
@@ -230,23 +247,74 @@ export class ProductsService {
   }
 
   async countAll(queries: Record<string, any>, appId: number) {
-    const { whereClause } = getWhereClause({
+    // const { whereClause } = getWhereClause({
+    //   queries,
+    //   initial: { status: 'active' },
+    // });
+
+    const countLiteral =
+      Sequelize.literal(`(SELECT COUNT("products->reviews"."rating") AS "count"
+    FROM "Users" AS "User" 
+    INNER JOIN "Products" AS "products" ON "User"."id" = "products"."userId" AND "products"."status" IN ('active', 'sold') 
+    INNER JOIN "Reviews" AS "products->reviews" ON "products"."id" = "products->reviews"."productId" 
+    WHERE "User"."id" = "Product"."userId"
+    GROUP BY "User"."id")`);
+
+    const { whereClause, extracted } = getWhereClause({
       queries,
       initial: { status: 'active' },
+      extract: ['globalCategoryId', 'discount', 'withReviews'],
     });
 
-    const { rows, count } = await Product.findAndCountAll({
+    console.log({ whereClause, extracted });
+
+    const { count } = await Product.findAndCountAll({
       where: whereClause,
       include: [
         {
           model: Category,
           where: { appId: appId },
-          attributes: ['id', 'name'],
-          include: [{ model: App, attributes: ['id', 'name'] }],
+          attributes: [],
+
+          // include: [{ model: App, attributes: ['id', 'name'] }],
+        },
+        {
+          model: User,
+          attributes: ['hasReviews'],
+          where: extracted.withReviews ? { hasReviews: true } : undefined,
         },
       ],
       attributes: ['id'],
+
+      // , [countLiteral, 'count']
+      // having: Sequelize.where(Sequelize.col('count'), Op.gt, 0),
+      // having: Sequelize.where(countLiteral, {
+      //   [Op.gt]: 0,
+      // }),
+      // group: ['Product.id', 'user.products.reviews.id', 'user.products.id'],
     });
+
+    // const apps = await Category.findAll({
+    //   where: { globalCategoryId: id },
+    //   attributes: {
+    //     include: [
+    //       [Sequelize.fn('COUNT', Sequelize.col('products.id')), 'productCount'],
+    //     ],
+    //   },
+    //   include: [
+    //     {
+    //       model: Product,
+    //       where: { status: 'active' },
+    //       attributes: [],
+    //     },
+    //     { model: App, attributes: ['id', 'name', 'miniPic'] },
+    //     { model: GlobalCategory, attributes: ['name'] },
+    //   ],
+    //   subQuery: false,
+    //   limit: 15,
+    //   group: ['Category.id', 'app.id', 'globalCategory.id'],
+    //   order: [['productCount', 'DESC']],
+    // });
 
     return { count };
   }

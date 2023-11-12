@@ -7,6 +7,7 @@ import { Message } from '../chat/entities/message.entity';
 
 import { ChatGateway } from '../chat/chat.gateway';
 import { User } from '../users/entities/user.entity';
+import { nanoid } from 'nanoid/non-secure';
 
 @Injectable()
 export class TasksService {
@@ -37,6 +38,7 @@ export class TasksService {
           '$2b$10$wYFl4Y1lSzc2SHmsaKN9k.NdXhL8xgGXJFjWN5B4vJNvUHenF7iCW',
         role: 'admin',
         name: 'admin',
+        inviteToken: nanoid(20),
       });
       this.logger.debug(!!admin && 'admin created');
     }

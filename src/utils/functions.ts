@@ -58,12 +58,45 @@ interface WhereClauseParams {
   queries: Record<string, string>;
   limit?: number;
   searchFields?: string | string[];
+  extract?: string[];
 }
 
 export const getWhereClause = (params: WhereClauseParams) => {
+  const extractInnerWhereClause = ({
+    queries,
+    fields,
+  }: {
+    queries: Record<string, string>;
+    fields: string[];
+  }) => {
+    const rawQueries = { ...queries };
+    const extracted = {};
+
+    fields.forEach((field) => {
+      if (Object.keys(rawQueries).includes(field)) {
+        extracted[field] = rawQueries[field];
+        delete rawQueries[field];
+      }
+    });
+
+    return { extracted, queries: rawQueries };
+  };
+
   const { initial, queries, searchFields } = params;
   const whereClause = { ...initial };
-  const rawQueries = { ...queries };
+  let rawQueries = { ...queries };
+  let extracted;
+
+  if (params.extract && params.extract.length) {
+    const { extracted: e, queries } = extractInnerWhereClause({
+      queries: params.queries,
+      fields: params.extract,
+    });
+    rawQueries = { ...queries };
+    extracted = e;
+  } else {
+    rawQueries = { ...queries };
+  }
 
   let page = 1;
   let limit: number = params.limit || 20;
@@ -138,7 +171,7 @@ export const getWhereClause = (params: WhereClauseParams) => {
   }
   console.log(offset);
 
-  return { whereClause, _limit: limit, _offset: offset };
+  return { whereClause, _limit: limit, _offset: offset, extracted };
 };
 
 export async function uploadFiles(

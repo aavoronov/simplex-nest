@@ -14,10 +14,6 @@ import { ProductsService } from '../products/products.service';
 export class GlobalCategoriesService {
   constructor(private readonly productsService: ProductsService) {}
 
-  create(createGlobalCategoryDto: CreateGlobalCategoryDto) {
-    return 'This action adds a new globalCategory';
-  }
-
   async getGlobalCategories() {
     const globals = await GlobalCategory.findAll({
       attributes: ['id', 'name'],
@@ -48,21 +44,6 @@ export class GlobalCategoriesService {
       order: [['productCount', 'DESC']],
     });
 
-    const products = await this.productsService.findAll(
-      {},
-      {
-        globalCategoryId: id,
-      },
-    );
-
-    return { apps, products };
-  }
-
-  update(id: number, updateGlobalCategoryDto: UpdateGlobalCategoryDto) {
-    return `This action updates a #${id} globalCategory`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} globalCategory`;
+    return { apps };
   }
 }
