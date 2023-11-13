@@ -501,7 +501,7 @@ export class UsersService {
       FROM "Users" AS "User" 
       INNER JOIN "Products" AS "products" ON "User"."id" = "products"."userId" AND "products"."status" IN ('active', 'sold') 
       LEFT OUTER JOIN "Purchases" AS "products->purchases" ON "products"."id" = "products->purchases"."productId"
-      WHERE "User"."id" = 1 
+      WHERE "User"."id" = ${id} 
       GROUP BY "User"."id")`);
 
     const user = await User.findOne({

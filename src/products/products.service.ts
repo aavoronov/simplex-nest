@@ -161,7 +161,10 @@ export class ProductsService {
       include: [
         {
           model: Category,
-          where: innerWhereClause,
+          // where: innerWhereClause,
+          where: extracted.globalCategoryId
+            ? { globalCategoryId: extracted.globalCategoryId }
+            : undefined,
           attributes: ['id', 'name', 'globalCategoryId'],
           include: [{ model: App, attributes: ['id', 'name', 'miniPic'] }],
         },
