@@ -115,6 +115,16 @@ export class UsersService {
       const { email, password, invite } = user;
       console.log(invite);
 
+      if (!!(await User.findOne({ where: { login: email } }))) {
+        throw new HttpException(
+          'Пользователь с таким email уже существует',
+          StatusCodes.CONFLICT,
+          {
+            cause: new Error('Some Error'),
+          },
+        );
+      }
+
       const salt = bcrypt.genSaltSync();
       const passwordHash = await bcrypt.hash(password, salt);
 
