@@ -513,7 +513,7 @@ export class UsersService {
         'createdAt',
         'profilePic',
         // [avgLiteral, 'average'],
-        [salesLiteral, 'salesCount'],
+        // [salesLiteral, 'salesCount'],
         [
           Sequelize.fn('AVG', Sequelize.col('products.reviews.rating')),
           'average',
@@ -527,7 +527,8 @@ export class UsersService {
         model: Product,
         attributes: [],
         where: { status: ['active', 'sold'] },
-        include: [{ model: Review, attributes: [] }],
+        required: false,
+        include: [{ model: Review, attributes: [], required: false }],
       },
 
       group: ['User.id'],
