@@ -51,6 +51,7 @@ export class ReviewsService {
       ],
       limit: _limit,
       offset: _offset,
+      order: [['id', 'DESC']],
     });
     return res;
   }

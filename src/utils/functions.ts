@@ -154,10 +154,10 @@ export const getWhereClause = (params: WhereClauseParams) => {
       const [from, to] = entry[1].split('-');
       if (from === 'null' && to === 'null') return;
       if (from === 'null') {
-        return (whereClause[entry[0]] = { [Op.lt]: +to });
+        return (whereClause[entry[0]] = { [Op.lte]: +to });
       }
       if (to === 'null') {
-        return (whereClause[entry[0]] = { [Op.gt]: +from });
+        return (whereClause[entry[0]] = { [Op.gte]: +from });
       }
       return (whereClause[entry[0]] = { [Op.between]: entry[1].split('-') });
     }

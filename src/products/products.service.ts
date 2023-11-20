@@ -101,6 +101,7 @@ export class ProductsService {
     const products = await Product.findAll({
       where: { userId: id, status: 'active' },
       attributes: ['id', 'name', 'description', 'price', 'pics'],
+      order: [['id', 'DESC']],
     });
     return products;
   }
@@ -119,6 +120,7 @@ export class ProductsService {
       ],
       limit: _limit,
       offset: _offset,
+      order: [['id', 'DESC']],
     });
     return products;
   }
@@ -182,6 +184,7 @@ export class ProductsService {
         [avgLiteral, 'average'],
         [countLiteral, 'count'],
       ],
+      order: [['id', 'DESC']],
     });
 
     return products;
@@ -244,6 +247,7 @@ export class ProductsService {
         [avgLiteral, 'average'],
         [countLiteral, 'count'],
       ],
+      order: [['id', 'DESC']],
     });
 
     return products;

@@ -95,6 +95,7 @@ export class PurchasesService {
           ],
         },
       ],
+      order: [['id', 'DESC']],
     });
     return purchases;
   }
@@ -126,6 +127,7 @@ export class PurchasesService {
       ],
       offset: _offset,
       limit: _limit,
+      order: [['id', 'DESC']],
     });
     return sales;
   }
