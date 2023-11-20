@@ -513,7 +513,7 @@ export class UsersService {
         'createdAt',
         'profilePic',
         // [avgLiteral, 'average'],
-        // [salesLiteral, 'salesCount'],
+        [salesLiteral, 'salesCount'],
         [
           Sequelize.fn('AVG', Sequelize.col('products.reviews.rating')),
           'average',
@@ -533,6 +533,8 @@ export class UsersService {
 
       group: ['User.id'],
     });
+
+    // const salesCount =
 
     return user;
   }
