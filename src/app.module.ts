@@ -70,19 +70,6 @@ AdminJS.registerAdapter({ Database, Resource });
         },
       }),
     }),
-    // TelegrafModule.forRootAsync({
-    //   imports: [ConfigModule],
-    //   useFactory: (configService: ConfigService) => ({
-    //     token: configService.get<string>(process.env.TELEGRAM_BOT_TOKEN),
-    //     launchOptions: {
-    //       webhook: {
-    //         domain: 'domain.tld',
-    //         hookPath: '/secret-path',
-    //       },
-    //     },
-    //   }),
-    //   inject: [ConfigService],
-    // }),
 
     ...modules,
   ],

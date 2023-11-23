@@ -27,7 +27,7 @@ export class Product extends Model<Product> {
   name: string;
 
   @Column({
-    type: DataType.STRING,
+    type: DataType.STRING(10000),
     allowNull: false,
   })
   @ApiProperty()
